@@ -1,6 +1,7 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from "next"
 import Link from "next/link"
 import { useRouter } from "next/router"
+import { useState } from "react"
 import Seo from "../components/Seo"
 
 type Movie = {
@@ -11,18 +12,18 @@ type Movie = {
 
 export default function Home({ results }: InferGetServerSidePropsType<typeof getServerSideProps>) {
     const router = useRouter()
-    const moveToDetail = (id:number) => {
-        router.push(`/movies/${id}`)
+    const moveToDetail = (id:number, title:string) => {
+        router.push(`/movies/${title}/${id}`)
     }
     return (
         <div className="container">
             <Seo title="Home" />
             { results?.map((movie:Movie)=> {
                 return (
-                    <div key={movie.id} className="movie" onClick={() => moveToDetail(movie.id)}>
+                    <div key={movie.id} className="movie" onClick={() => moveToDetail(movie.id, movie.original_title)}>
                         <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt="" />
                         <h4>
-                            <Link href={`/movies/${movie.id}`}>
+                            <Link href={`/movies/${movie.original_title}/${movie.id}`}>
                                 <a>{movie.original_title}</a>
                             </Link>
                         </h4>
@@ -58,6 +59,8 @@ export default function Home({ results }: InferGetServerSidePropsType<typeof get
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
+    const currentPage:number = 1
+    const setCurrentPage = () => currentPage + 1
     const { results } = await (await fetch(`http://localhost:3000/api/movies`)).json()
     return {
         props: {
